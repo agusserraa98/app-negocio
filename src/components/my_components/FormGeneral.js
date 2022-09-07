@@ -1,18 +1,23 @@
 import { Alert, Button, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
+import { get, now } from "lodash";
 import { useForm } from "react-hook-form";
 import Swal from 'sweetalert2'
+
+import format from "date-fns/format";
 
 const FormGeneral = () => {
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
-      origenVenta: "",
+      origenVenta: "reparto",
       monto: null
     }
   });
 
-  const onSubmit = (data) => { 
-    console.log(data);
-    Swal.fire("Ingreso/Egreso correcto","Cargar otra venta","success")
+  const onSubmit = (data) => {
+    const horax = +new Date();
+    console.log(horax)
+    data.hora =  horax;
+    console.log(data)
   }
 
   const handleError = (errors) => console.log(errors);
