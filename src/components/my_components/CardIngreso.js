@@ -1,6 +1,7 @@
 import { async } from '@firebase/util';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button, Card, CardActions, CardContent, Typography } from "@mui/material"
+import Swal from 'sweetalert2'
 
 // firebase
 import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
@@ -18,8 +19,12 @@ const CardIngreso = (props) => {
 
     const deleteIngreso = async(id) => {
         await deleteDoc(doc(db,"ingresos",id)) 
-        window.location.reload();
-
+             window.location.reload();
+             Swal.fire(
+                'Muy bien, se elimino',
+                'Continuar',
+                'success'
+              )
     }
     
     return (
