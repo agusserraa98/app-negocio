@@ -1,4 +1,4 @@
-import { Alert, Button, Card, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Button, Card, CardContent, FormHelperText, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import { get, now, set } from "lodash";
 import { useForm } from "react-hook-form";
 import Swal from 'sweetalert2'
@@ -8,6 +8,7 @@ import { async } from "@firebase/util";
 // firebase
 import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import firebaseApp from '../../firebase/firebase';
+import CardIngreso from "./CardIngreso";
 
 const FormGeneral = () => {
   // variables
@@ -17,16 +18,22 @@ const FormGeneral = () => {
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       origenVenta: "reparto",
-      monto: null
+      monto: null,
+      tipo: "ingreso"
     }
   });
   // submit
-  const onSubmit = (data,items) => {
+  const onSubmit = (data, items) => {
     const horax = +new Date();
     console.log(horax)
     data.hora = horax;
     console.log(data)
     getPedidos()
+    Swal.fire(
+      'Muy bien, se cargo',
+      'Continuar',
+      'success'
+    )
     try {
       addDoc(collection(db, 'ingresos'), {
         data
@@ -35,16 +42,16 @@ const FormGeneral = () => {
       console.log(error)
     }
   }
-  
+
   async function getPedidos() {
     try {
       const items = [];
       const response = await getDocs(collection(db, 'ingresos'))
-      response.forEach((item)=>{
-        items.push({...item.data(), id:item.id});
+      response.forEach((item) => {
+        items.push({ ...item.data(), id: item.id });
       })
-      console.log(items)
-      items.map((item)=>console.log(item.data.monto))
+      items.sort( (a, b) => {return b.data.hora - a.data.hora} // ordena por fecha
+      )
       setLista(items)
       return items;
     } catch (error) {
@@ -52,18 +59,40 @@ const FormGeneral = () => {
     }
   }
 
-useEffect(()=>{
-  console.log("me modifique")
-},[lista])
+  useEffect(() => {
+  }, [lista])
 
+  useEffect(() => {
+    getPedidos()
+  }, [])
 
 
   const handleError = (errors) => console.log(errors);
+
+
+
   return (
     <div>
       <form onSubmit={handleSubmit(onSubmit, handleError)}>
         <Stack spacing={2}>
           <h2>Ingreos de datos</h2>
+          <InputLabel> Tipo</InputLabel>
+          <Select
+            {...register("tipo", {
+              required: {
+                value: true,
+                message: "Tipo requerido"
+              },
+              maxlenght: 10
+            })}
+          >
+            <MenuItem value={"ingreso"}>Ingreso</MenuItem>
+            <MenuItem value={"egreso"}>Egreso</MenuItem>
+          </Select>
+          <Typography variant="span" color="red" >
+            {errors?.tipo?.message}
+          </Typography>
+          <InputLabel> Origen</InputLabel>
           <Select
             {...register("origenVenta", {
               required: {
@@ -99,15 +128,10 @@ useEffect(()=>{
       </form>
 
       <div>
-        <Stack spacing={2}>  
-        { lista.map(item=>
-            <Card key = {item.id}>
-              <Typography variant="p">{item.data.origenVenta}</Typography>
-              <Typography variant="h5">{item.data.monto}</Typography>
-              <Typography variant="h5">{item.data.hora}</Typography>
-            </Card>
-        )
-        }
+        <Stack spacing={2}>
+          {
+            lista.map(item => <CardIngreso item={item} />)
+          }
         </Stack>
       </div>
     </div>
